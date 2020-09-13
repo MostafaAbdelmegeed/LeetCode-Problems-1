@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 
+
 using namespace std;
 
 class Solution {
@@ -10,27 +11,32 @@ public:
             intervals.push_back(newInterval);
             return intervals;
         }
-        for (int i = 0; i < intervals.size(); i++) {
-            if(compare(newInterval, intervals.at(i)) <= 0) {
-                intervals.insert(intervals.begin() + i, newInterval);
+        vector<int> temp = newInterval;
+        int first = -1, last = -1;
+        for (int i = 0; i < intervals.size(); i++){
+            if (isOverlapping(newInterval, intervals.at(i))) {
+                if (first == -1) first = i;
+                temp = merge(temp, intervals.at(i));
+            } else if (first != -1) {
+                last = i;
                 break;
-            } else if (i == intervals.size()-1) intervals.push_back(newInterval);
+            } else if (compare(newInterval, intervals.at(i)) == -1) {
+                intervals.insert(intervals.begin()+i, newInterval);
+                break;
+            } else if (i == intervals.size() - 1) intervals.push_back(newInterval);
         }
-        for (int i = 0; i < intervals.size()-1; i++) {
-            printf("Comparing [%d, %d] & [%d, %d]: %d\n", intervals.at(i).at(0), intervals.at(i).at(1), intervals.at(i+1).at(0), intervals.at(i+1).at(1), isOverlapping(intervals.at(i),intervals.at(i+1)));
-            if (isOverlapping(intervals.at(i), intervals.at(i+1))) {
-                vector<int> temp = merge(intervals.at(i), intervals.at(i+1));
-                intervals.erase(intervals.begin()+i, intervals.begin()+i+2);
-                intervals.insert(intervals.begin()+i, temp);
-                i--;
-            }
-        }
+        if (first != -1 && last == -1) last = intervals.size();
+        if (first != -1) {
+            intervals.insert(intervals.begin() + first, temp);
+            if (last-first == 1) intervals.erase(intervals.begin() + first + 1);
+            else intervals.erase(intervals.begin() + first + 1 , intervals.begin() + last + 1);
+        } 
         return intervals;
     }
 
     bool isOverlapping(vector<int> i1, vector<int> i2) {
         if (i1.at(0) == i2.at(0) || i1.at(0) == i2.at(1) || i2.at(0) == i1.at(1) || i1.at(1) == i2.at(1)) return true;
-        if (i1.at(0) > i2.at(0) && i1.at(0) < i2.at(0)) return true;
+        if (i1.at(0) > i2.at(0) && i1.at(0) < i2.at(1)) return true;
         if (i1.at(0) < i2.at(0) && i1.at(1) > i2.at(0)) return true;
         if (i1.at(0) < i2.at(0) && i1.at(1) > i2.at(1)) return true;
         if (i1.at(0) > i2.at(0) && i1.at(1) < i2.at(1)) return true;
@@ -53,8 +59,8 @@ public:
 };
 
 int main(){
-    vector<vector<int>> intervals{{1,2},{3,5}, {6,7}, {8,10}, {12,16}};
-    vector<int> newInterval{4,8};
+    vector<vector<int>> intervals{{2,4},{5,7},{8,10},{11,13}};
+    vector<int> newInterval{3,6};
     printf("Inputs:\n\tIntervals: [");
     for(vector<int> x: intervals) {
         printf("[%d, %d], ", x.at(0), x.at(1));
@@ -62,6 +68,7 @@ int main(){
     printf("]\n");
     printf("\tNew Interval: [%d, %d]\n", newInterval.at(0), newInterval.at(1));
     Solution sol = Solution();
+    printf("isOverlapping(): %d\n", sol.isOverlapping(newInterval, intervals.at(0)));
     vector<vector<int>> result = sol.insert(intervals, newInterval);
     printf("Results:\n\t[");
     for(vector<int> x: result){
